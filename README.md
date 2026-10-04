@@ -58,7 +58,33 @@ shrinks the villager radius, lowers the crowd threshold and halves the lag machi
 
 ## Benchmarks
 
-BENCHMARKS_PLACEHOLDER
+All numbers were measured on real Paper servers. Each scenario was built by a test plugin, then Linear's
+module was switched **off/on/off/on/off/on** in 20-second rounds on the same running server, with every
+tick's duration recorded. Values are average ms per tick (median of the three rounds per state;
+lower is better, 50 ms is the limit for 20 TPS). "Player nearby" means entity activation range was
+disabled, as if a player were standing at the farm.
+
+| Scenario | Paper 1.21.11 | Paper 26.3 |
+| --- | --- | --- |
+| Trading hall: 400 villagers in 1x1 cells, player nearby | 19.2 → 3.2 ms (**-83%**) | 23.6 → 3.2 ms (**-87%**) |
+| 300 villagers in pastures, no player within 48 blocks | 13.7 → 1.7 ms (**-87%**) | 21.1 → 1.9 ms (**-91%**) |
+| 800 cows packed in 16 pens, player nearby | 9.4 → 7.7 ms (**-19%**) | 8.9 → 7.7 ms (**-14%**) |
+| 800 chickens packed in 16 pens, player nearby | 9.3 → 7.3 ms (**-22%**) | 8.7 → 7.2 ms (**-17%**) |
+| Lag machine: 4 chunks of observer-clocked redstone dust + 48 piston clocks | 31.0 → 2.8 ms (**-91%**) | 30.8 → 2.9 ms (**-91%**) |
+| Normal redstone + 180 uncrowded cows (nothing to optimize) | 5.6 → 5.7 ms (no measurable cost) | 5.5 → 5.7 ms (no measurable cost) |
+
+Notes:
+
+- The crowded-animal gains are smaller because most of a packed pen's cost is physics and collisions,
+  which Linear deliberately leaves alone (water streams, pushing and drops must keep working).
+- The overhead difference (0.1–0.2 ms) is within run-to-run noise. The plain averages of all rounds
+  were 5.68 vs 5.69 ms and 5.68 vs 5.68 ms.
+- Functional tests (trading hall, job sites, restocking, breeding, golem-farm villagers, crowded animals,
+  lag machine throttling, no errors in the log) passed on Paper 1.21, 1.21.11, 26.1.2 and 26.3 and on
+  Folia 1.21.11 and 26.2. A real Minecraft client (bot) also checked trading, level-ups, feeding and
+  breeding animals, villagers waking up when a player walks over, and in-game alerts on Paper and Folia
+  1.21.11. Removing Linear after a restart left every mob with working AI on Paper 1.21.11, Paper 26.3
+  and Folia 1.21.11.
 
 ## Commands and permissions
 
