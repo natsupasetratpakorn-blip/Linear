@@ -10,10 +10,10 @@ import dev.m4sh3r.linear.config.LinearConfig;
 import dev.m4sh3r.linear.lag.LagMachineDetector;
 import dev.m4sh3r.linear.limit.ChunkLimiter;
 import dev.m4sh3r.linear.monitor.TickMonitor;
+import dev.m4sh3r.linear.util.Text;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -118,8 +118,14 @@ public final class Linear extends JavaPlugin {
         return active(ADAPTIVE) && tickMonitor != null && tickMonitor.stressed();
     }
 
+    /** A themed chat message with Linear's prefix. */
     public Component message(String miniMessage) {
-        return MiniMessage.miniMessage().deserialize(config.prefix + miniMessage);
+        return text(config.prefix + miniMessage);
+    }
+
+    /** A themed chat line without the prefix. */
+    public Component text(String miniMessage) {
+        return Text.parse(miniMessage, config.smallCaps);
     }
 
     public static boolean folia() {

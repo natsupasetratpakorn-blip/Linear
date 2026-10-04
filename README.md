@@ -108,6 +108,14 @@ Modules: `villagers`, `crowded-mobs`, `lag-machines`, `chunk-limits`, `adaptive`
 Everything is in `plugins/Linear/config.yml`, with a comment on every option. The defaults are
 chosen so that no farm breaks.
 
+### Chat style
+
+In-game messages use a **small-caps font** (`ʟɪɴᴇᴀʀ » ...`) and one colour theme: a sky-to-indigo
+gradient for the name, light text for values, grey for labels, green/amber/red for status and an
+underlined link colour for click-to-teleport. Set `messages.small-caps: false` to use the normal font.
+`messages.prefix` accepts MiniMessage plus the theme tags `<accent>`, `<value>`, `<muted>`, `<dim>`,
+`<good>`, `<bad>`, `<warn>` and `<link>`.
+
 ## How it works (and why it is safe)
 
 - Linear only uses the Paper API. AI is switched off with `Mob#setAware(false)`, which stops goals,

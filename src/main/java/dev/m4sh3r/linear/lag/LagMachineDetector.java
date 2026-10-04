@@ -240,10 +240,10 @@ public final class LagMachineDetector implements Listener {
     }
 
     private void alert(Flag flag, String action) {
-        Component msg = plugin.message("<red>Lag machine " + action + "</red> <gray>at</gray> <white>" + describe(flag)
-                + "</white> <dark_gray>(" + flag.reason() + ")</dark_gray> <aqua><u>[teleport]</u></aqua>")
+        Component msg = plugin.message("<bad>⚠ Lag machine " + action + "</bad> <muted>at</muted> <value>" + describe(flag)
+                + "</value> <muted>(" + flag.reason() + ")</muted> <link>[teleport]</link>")
                 .clickEvent(ClickEvent.runCommand("/linear tp " + flag.world() + " " + flag.x() + " " + flag.y() + " " + flag.z()))
-                .hoverEvent(HoverEvent.showText(Component.text("Click to teleport")));
+                .hoverEvent(HoverEvent.showText(plugin.text("<accent>Click to teleport</accent>")));
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             if (player.hasPermission("linear.alerts")) {
                 player.sendMessage(msg);

@@ -122,4 +122,8 @@ adaptive:
     lag-limit-multiplier: 0.5
 
 messages:
-  prefix: "<gradient:#38bdf8:#818cf8><bold>Linear</bold></gradient> <dark_gray>»</dark_gray> "
+  # Write every in-game message in a small-caps font (ʟɪɴᴇᴀʀ).
+  small-caps: true
+  # MiniMessage. Besides the normal colours you can use Linear's theme tags:
+  # <accent> <value> <muted> <dim> <good> <bad> <warn> <link>
+  prefix: "<gradient:#38bdf8:#818cf8><bold>Linear</bold></gradient> <dim>»</dim> "

@@ -26,6 +26,7 @@ public final class LinearConfig {
     public final ChunkLimits limits;
     public final Adaptive adaptive;
     public final String prefix;
+    public final boolean smallCaps;
 
     public LinearConfig(FileConfiguration c, Consumer<String> warn) {
         this.villagers = new Villagers(c, warn);
@@ -33,7 +34,8 @@ public final class LinearConfig {
         this.lag = new LagMachines(c, warn);
         this.limits = new ChunkLimits(c, warn);
         this.adaptive = new Adaptive(c);
-        this.prefix = c.getString("messages.prefix", "<aqua>Linear</aqua> <dark_gray>»</dark_gray> ");
+        this.prefix = c.getString("messages.prefix", "<gradient:#38bdf8:#818cf8><bold>Linear</bold></gradient> <dim>»</dim> ");
+        this.smallCaps = c.getBoolean("messages.small-caps", true);
     }
 
     public static final class Villagers {

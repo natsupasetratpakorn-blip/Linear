@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -38,7 +38,7 @@ public final class LinearCommand implements TabExecutor {
             case "restore" -> restore(sender);
             case "reload" -> reload(sender);
             case "tp" -> teleport(sender, args);
-            default -> sender.sendMessage(plugin.message("<gray>Usage: /" + label + " <white><status|chunks|toggle|restore|reload></white>"));
+            default -> usage(sender, label);
         }
         return true;
     }
@@ -50,62 +50,82 @@ public final class LinearCommand implements TabExecutor {
         String mspt = Double.isNaN(tm.mspt()) ? "n/a" : String.format(Locale.ROOT, "%.2f", tm.mspt());
         String tps = Double.isNaN(tm.tps()) ? "n/a" : String.format(Locale.ROOT, "%.2f", Math.min(20.0, tm.tps()));
         String version = plugin.getPluginMeta().getVersion();
-        sender.sendMessage(plugin.message("<white>v" + version + "</white> <gray>by M4sh3r on " + plugin.getServer().getMinecraftVersion()
-                + (Linear.folia() ? " (Folia)" : "") + "</gray>"));
-        line(sender, "Server", "<white>" + tps + "</white> TPS, <white>" + mspt + "</white> ms/tick"
-                + (plugin.stressed() ? " <red>(stressed: stricter limits)</red>" : ""));
-        line(sender, "Villagers", onOff(Linear.VILLAGERS) + " <white>" + ai.count(AiController.Reason.VILLAGER)
-                + "</white> brains switched off");
-        line(sender, "Crowded mobs", onOff(Linear.CROWD) + " <white>" + ai.count(AiController.Reason.CROWD)
-                + "</white> mobs with AI switched off");
-        line(sender, "Lag machines", onOff(Linear.LAG) + " <white>" + lag.flags().size() + "</white> chunks throttled, <white>"
-                + lag.blockedActions() + "</white> actions stopped");
-        line(sender, "Chunk limits", onOff(Linear.LIMITS) + " <white>" + plugin.limiter().blockedSpawns() + "</white> spawns prevented");
-        line(sender, "Adaptive", onOff(Linear.ADAPTIVE) + (plugin.stressed() ? " <red>active</red>" : " <gray>idle</gray>"));
-        line(sender, "Tracked mobs", "<white>" + plugin.tracker().trackedCount() + "</white>");
+        sender.sendMessage(plugin.message("<value>v" + version + "</value> <muted>by</muted> <accent>M4sh3r</accent> <dim>·</dim> <muted>"
+                + plugin.getServer().getMinecraftVersion() + (Linear.folia() ? " Folia" : "") + "</muted>"));
+        line(sender, "Server", "<" + healthColor(tm) + ">" + tps + "</" + healthColor(tm) + "> <muted>TPS</muted> <dim>·</dim> <"
+                + healthColor(tm) + ">" + mspt + "</" + healthColor(tm) + "> <muted>ms/tick</muted>"
+                + (plugin.stressed() ? " <warn>(stressed, stricter limits)</warn>" : ""));
+        line(sender, "Villagers", onOff(Linear.VILLAGERS) + " <value>" + ai.count(AiController.Reason.VILLAGER)
+                + "</value> <muted>brains switched off</muted>");
+        line(sender, "Crowded mobs", onOff(Linear.CROWD) + " <value>" + ai.count(AiController.Reason.CROWD)
+                + "</value> <muted>mobs with AI switched off</muted>");
+        line(sender, "Lag machines", onOff(Linear.LAG) + " <value>" + lag.flags().size() + "</value> <muted>chunks throttled</muted> <dim>·</dim> <value>"
+                + lag.blockedActions() + "</value> <muted>actions stopped</muted>");
+        line(sender, "Chunk limits", onOff(Linear.LIMITS) + " <value>" + plugin.limiter().blockedSpawns() + "</value> <muted>spawns prevented</muted>");
+        line(sender, "Adaptive", onOff(Linear.ADAPTIVE) + (plugin.stressed() ? " <warn>active</warn>" : " <muted>idle</muted>"));
+        line(sender, "Tracked mobs", "<value>" + plugin.tracker().trackedCount() + "</value>");
+    }
+
+    private void usage(CommandSender sender, String label) {
+        sender.sendMessage(plugin.message("<muted>Commands:</muted>"));
+        for (String sub : SUBCOMMANDS) {
+            sender.sendMessage(plugin.text(" <dim>›</dim> <accent>/" + label + " " + sub + "</accent>")
+                    .clickEvent(ClickEvent.suggestCommand("/" + label + " " + sub)));
+        }
     }
 
     private void line(CommandSender sender, String name, String value) {
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(" <dark_gray>•</dark_gray> <gray>" + name + ":</gray> " + value));
+        sender.sendMessage(plugin.text(" <dim>›</dim> <muted>" + name + "</muted> " + value));
     }
 
     private String onOff(String module) {
-        return plugin.active(module) ? "<green>[on]</green>" : "<red>[off]</red>";
+        return plugin.active(module) ? "<good>●</good>" : "<bad>○</bad>";
+    }
+
+    /** Green below 40 ms/tick, amber up to 50, red once the server can no longer keep 20 TPS. */
+    private static String healthColor(TickMonitor tm) {
+        double mspt = tm.mspt();
+        if (Double.isNaN(mspt)) {
+            return "value";
+        }
+        return mspt < 40 ? "good" : mspt < 50 ? "warn" : "bad";
     }
 
     private void chunks(CommandSender sender) {
         LagMachineDetector lag = plugin.lagDetector();
         List<LagMachineDetector.Flag> flags = lag.flags();
         if (!flags.isEmpty()) {
-            sender.sendMessage(plugin.message("<red>Throttled chunks:</red>"));
+            sender.sendMessage(plugin.message("<bad>Throttled chunks</bad>"));
             long now = System.currentTimeMillis();
             for (LagMachineDetector.Flag f : flags) {
-                sender.sendMessage(link(" <dark_gray>•</dark_gray> <white>" + f.world() + " " + f.x() + " " + f.y() + " " + f.z()
-                        + "</white> <gray>" + f.reason() + ", " + Math.max(0, (f.until() - now) / 1000) + "s left</gray>",
+                sender.sendMessage(link(" <dim>›</dim> <value>" + f.world() + " " + f.x() + " " + f.y() + " " + f.z()
+                        + "</value> <muted>" + f.reason() + "</muted> <dim>·</dim> <warn>" + Math.max(0, (f.until() - now) / 1000) + "s left</warn>",
                         f.world(), f.x(), f.y(), f.z()));
             }
         }
         List<LagMachineDetector.Activity> top = lag.lastSecond();
         if (top.isEmpty()) {
-            sender.sendMessage(plugin.message("<gray>No redstone, piston or falling block activity in the last second.</gray>"));
+            sender.sendMessage(plugin.message("<good>No redstone, piston or falling block activity in the last second.</good>"));
             return;
         }
-        sender.sendMessage(plugin.message("<gray>Busiest chunks (last second):</gray>"));
+        sender.sendMessage(plugin.message("<muted>Busiest chunks in the last second</muted>"));
         for (LagMachineDetector.Activity a : top.subList(0, Math.min(8, top.size()))) {
-            sender.sendMessage(link(" <dark_gray>•</dark_gray> <white>" + a.world() + " " + a.x() + " " + a.y() + " " + a.z()
-                    + "</white> <gray>redstone " + a.redstone() + ", pistons " + a.pistons() + ", falling/TNT " + a.falling() + "</gray>",
+            sender.sendMessage(link(" <dim>›</dim> <value>" + a.world() + " " + a.x() + " " + a.y() + " " + a.z()
+                    + "</value> <muted>redstone</muted> <accent>" + a.redstone() + "</accent> <muted>pistons</muted> <accent>" + a.pistons()
+                    + "</accent> <muted>falling/TNT</muted> <accent>" + a.falling() + "</accent>",
                     a.world(), a.x(), a.y(), a.z()));
         }
     }
 
     private Component link(String text, String world, int x, int y, int z) {
-        return MiniMessage.miniMessage().deserialize(text)
+        return plugin.text(text)
+                .hoverEvent(HoverEvent.showText(plugin.text("<accent>Click to teleport</accent>")))
                 .clickEvent(ClickEvent.runCommand("/linear tp " + world + " " + x + " " + y + " " + z));
     }
 
     private void toggle(CommandSender sender, String[] args) {
         if (args.length < 2 || !Arrays.asList(Linear.MODULES).contains(args[1].toLowerCase(Locale.ROOT))) {
-            sender.sendMessage(plugin.message("<gray>Usage: /linear toggle <white><" + String.join("|", Linear.MODULES) + "> [on|off]</white>"));
+            sender.sendMessage(plugin.message("<muted>Usage:</muted> <accent>/linear toggle " + String.join("|", Linear.MODULES) + " [on|off]</accent>"));
             return;
         }
         String module = args[1].toLowerCase(Locale.ROOT);
@@ -120,21 +140,21 @@ public final class LinearCommand implements TabExecutor {
                 plugin.lagDetector().clearFlags();
             }
         }
-        sender.sendMessage(plugin.message("<white>" + module + "</white> " + (enable ? "<green>enabled</green>" : "<red>disabled</red>")
-                + " <gray>until the next reload.</gray>"));
+        sender.sendMessage(plugin.message("<value>" + module + "</value> " + (enable ? "<good>enabled</good>" : "<bad>disabled</bad>")
+                + " <muted>until the next reload.</muted>"));
     }
 
     private void restore(CommandSender sender) {
         plugin.setOverride(Linear.VILLAGERS, false);
         plugin.setOverride(Linear.CROWD, false);
         int n = plugin.ai().restoreAll(null);
-        sender.sendMessage(plugin.message("<green>Giving AI back to " + n + " mobs.</green> <gray>Villager and crowd optimizers are off until <white>/linear reload</white>.</gray>"));
+        sender.sendMessage(plugin.message("<good>Giving AI back to " + n + " mobs.</good> <muted>Villager and crowd optimizers are off until</muted> <accent>/linear reload</accent><muted>.</muted>"));
     }
 
     private void reload(CommandSender sender) {
         plugin.loadSettings();
         plugin.tracker().rescan();
-        sender.sendMessage(plugin.message("<green>Configuration reloaded.</green>"));
+        sender.sendMessage(plugin.message("<good>Configuration reloaded.</good>"));
     }
 
     private void teleport(CommandSender sender, String[] args) {
