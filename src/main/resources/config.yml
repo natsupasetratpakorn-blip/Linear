@@ -1,0 +1,125 @@
+# ---------------------------------------------------------------------------
+#  Linear - performance & optimization for Paper and Folia
+#  Author: M4sh3r
+#
+#  Everything Linear does to a mob is reversible: it only toggles the mob's
+#  "aware" flag (Paper API) and remembers that it did so. /linear restore or
+#  disabling a module gives every mob its AI back.
+# ---------------------------------------------------------------------------
+
+# Smart villager AI. A villager's brain (pathfinding, POI searches, gossip,
+# schedules) is the most expensive thing a mob does. Linear switches the brain
+# off where it is wasted and keeps the parts players care about:
+#   - trading always works (the brain wakes up while someone trades and for a
+#     short while after, so level-ups and reputation are applied normally)
+#   - trades restock up to twice per Minecraft day during work hours, like vanilla
+#   - villagers that are able to breed keep their AI, so breeders keep breeding
+#   - villagers with a claimed bed keep their AI, so iron golem farms keep working
+villagers:
+  enabled: true
+  # How often each villager is re-evaluated, in ticks.
+  check-interval-ticks: 40
+  # Villagers keep their brain for this many ticks after spawning or loading, so a
+  # villager placed in a trading hall can still pick up its job site and profession.
+  grace-ticks: 600
+
+  # Villagers that physically cannot walk anywhere (trading halls, 1x1 cells,
+  # minecarts, boats) don't need a brain even when a player is right next to them.
+  confined:
+    enabled: true
+    # A villager counts as confined when it can reach at most this many blocks
+    # of floor (1 = a 1x1 cell, 2 = a 1x2 cell).
+    max-area: 2
+
+  # Villagers with no player nearby don't need a brain either. Paper keeps
+  # ticking the full villager brain outside the entity activation range
+  # (spigot.yml tick-inactive-villagers: true), so this saves real work.
+  idle-without-players:
+    enabled: true
+    radius: 48
+    # These professions keep their AI when they are free to walk. Farmers harvest
+    # crops and share food in breeders and crop farms.
+    keep-professions: [FARMER]
+    # Keep the AI of villagers that have enough food to breed (12+ food points).
+    keep-breed-ready: true
+
+  # Villagers that claimed a bed keep their AI (iron golem farms, breeders).
+  keep-ai-if-bed-claimed: true
+  # A villager whose name tag contains one of these (case-insensitive) is never touched.
+  keep-ai-name-tags: ["keepai", "[ai]"]
+  # How long the brain stays on after a player interacts with the villager.
+  wake-on-interact-ticks: 200
+  # Placing or breaking a workstation or bed wakes villagers within 4 blocks for this
+  # long, so they can take (or re-roll) a profession and claim beds.
+  wake-on-workstation-ticks: 600
+
+  restock:
+    enabled: true
+    # Only restock villagers that remember a job site block (workstation).
+    require-job-site: true
+
+# Crowded farm animals. Dozens of mobs packed into a pen all run pathfinding,
+# look-around and wander goals that can never succeed. Linear switches the AI
+# of a mob off while it is packed in. Physics, water streams, aging, egg laying
+# and drops are untouched. Feeding an animal wakes it up so breeding works.
+crowded-mobs:
+  enabled: true
+  check-interval-ticks: 60
+  # Mobs of the same type within this many blocks count towards the crowd.
+  radius: 3.0
+  # A mob loses its AI when this many mobs of its type (itself included) are in range.
+  threshold: 10
+  # Sheep (wool regrowth), bees, turtles and other mobs whose farm output
+  # depends on their AI are deliberately not in this list.
+  types: [CHICKEN, COW, MOOSHROOM, PIG, RABBIT, GOAT]
+  # Leave mobs with a name tag alone.
+  keep-named: true
+  wake-on-interact-ticks: 600
+
+# Lag machine detection. Linear counts redstone updates, piston moves and
+# falling block / TNT spawns per chunk every second. A chunk that stays over a
+# limit for several seconds in a row is flagged, staff with linear.alerts are
+# told where it is and (with action THROTTLE) the chunk's redstone is frozen and
+# its pistons, falling blocks and TNT are stopped for a while. Repeat offenders
+# are throttled for longer each time.
+lag-machines:
+  enabled: true
+  # Limits per chunk per second.
+  limits:
+    redstone: 3000
+    pistons: 200
+    falling-blocks-and-tnt: 150
+  # Seconds in a row a chunk must stay over a limit before it is flagged.
+  strikes: 3
+  # THROTTLE or ALERT (alert only).
+  action: THROTTLE
+  throttle-seconds: 30
+  max-throttle-seconds: 600
+
+# Per-chunk caps that stop farms from growing without bound.
+chunk-limits:
+  enabled: true
+  # Breeding, chicken eggs and dispensed eggs stop once a chunk has this many
+  # mobs of that type.
+  breeding: 80
+  # Spawners stop once a chunk has this many mobs of the spawned type.
+  spawners: 40
+  # Per type overrides, used for both breeding and spawners.
+  per-type:
+    CHICKEN: 120
+
+# When the server struggles, Linear gets stricter until it recovers.
+adaptive:
+  enabled: true
+  # Enter stressed mode when the average tick time stays above this (ms).
+  stressed-mspt: 45.0
+  # Leave stressed mode once it drops below this (ms).
+  recovered-mspt: 35.0
+  stressed:
+    villager-radius: 24
+    crowd-threshold: 6
+    # Lag machine limits are multiplied by this while stressed.
+    lag-limit-multiplier: 0.5
+
+messages:
+  prefix: "<gradient:#38bdf8:#818cf8><bold>Linear</bold></gradient> <dark_gray>»</dark_gray> "

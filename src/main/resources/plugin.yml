@@ -1,0 +1,24 @@
+name: Linear
+version: '${project.version}'
+main: dev.m4sh3r.linear.Linear
+api-version: '1.21'
+author: M4sh3r
+description: ${project.description}
+folia-supported: true
+
+commands:
+  linear:
+    description: Linear performance tools.
+    usage: /linear <status|chunks|toggle|restore|reload>
+    aliases: [lin]
+    permission: linear.admin
+
+permissions:
+  linear.admin:
+    description: Use /linear commands.
+    default: op
+    children:
+      linear.alerts: true
+  linear.alerts:
+    description: Receive lag machine alerts.
+    default: op
