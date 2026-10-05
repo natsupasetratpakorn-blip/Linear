@@ -208,15 +208,19 @@ public final class LinearMenus {
         if (tips.isEmpty()) {
             lines.add("<good>Your configuration already uses every setting Linear checks.</good>");
         } else {
-            lines.add("<value>" + tips.size() + "</value> <muted>suggestions, biggest impact first.</muted> <dim>Linear never changes these files.</dim>");
+            lines.add("<value>" + tips.size() + "</value> <muted>suggestions, biggest impact first. Hover for details, click to copy them to chat.</muted>");
+            lines.add("<muted>Linear never changes these files.</muted>");
             for (ConfigAdvisor.Tip tip : tips) {
                 String colour = tip.impact() == 3 ? "bad" : tip.impact() == 2 ? "warn" : "muted";
-                String name = tip.setting().substring(tip.setting().lastIndexOf('.') + 1);
-                buttons.add(new MenuButton("<" + colour + ">●</" + colour + "> <value>" + Text.verbatim(name) + "</value>",
+                String label = tip.impact() == 3 ? "high" : tip.impact() == 2 ? "medium" : "low";
+                buttons.add(new MenuButton("<" + colour + ">●</" + colour + "> <value>" + tip.title() + "</value>  <muted>"
+                        + Text.verbatim(tip.current().toLowerCase(Locale.ROOT)) + "</muted> <muted>→</muted> <good>"
+                        + Text.verbatim(tip.suggested().toLowerCase(Locale.ROOT)) + "</good>",
                         Material.PAPER,
-                        List.of("<muted>" + Text.verbatim(tip.current()) + "</muted> <dim>→</dim> <good>" + Text.verbatim(tip.suggested()) + "</good>",
+                        List.of("<" + colour + ">" + label + " impact</" + colour + ">",
                                 "<muted>" + tip.why() + "</muted>",
-                                "<dim>" + Text.verbatim(tip.file()) + " · " + Text.verbatim(tip.setting()) + "</dim>"),
+                                "<value>" + Text.verbatim(tip.setting()) + "</value>",
+                                "<muted>in " + Text.verbatim(tip.file()) + "</muted>"),
                         p -> {
                             p.sendMessage(plugin.message("<value>" + Text.verbatim(tip.setting()) + "</value> <muted>in</muted> <value>"
                                     + Text.verbatim(tip.file()) + "</value><muted>:</muted> <muted>" + Text.verbatim(tip.current())
@@ -225,7 +229,7 @@ public final class LinearMenus {
                         }));
             }
         }
-        return new MenuPage("<violet>Config advisor</violet>", null, List.of(), lines, buttons, back());
+        return new MenuPage("<violet>Config advisor</violet>", null, List.of(), lines, buttons, back(), 1);
     }
 
     // ---- restore ----

@@ -89,6 +89,13 @@ an item icon (1.21.9+ clients). On older servers, and for players on older clien
 ViaVersion, the same menu opens as a chest. Nothing to configure: Linear picks per player. Set
 `menu.style: chest` to always use the chest.
 
+| Dialog (1.21.6+) | Chest fallback |
+| --- | --- |
+| ![Linear dialog menu](docs/screenshots/menu-main.png) | ![Linear chest menu](docs/screenshots/menu-chest.png) |
+| ![Modules](docs/screenshots/menu-modules.png) | ![Config advisor](docs/screenshots/menu-advisor.png) |
+
+Screenshots are from a real Minecraft 1.21.11 client on Paper 1.21.11.
+
 ### Adaptive mode
 When the average tick time stays above 45 ms, Linear gets stricter until the server recovers. It
 shrinks the villager radius, lowers the crowd threshold and halves the lag machine limits.

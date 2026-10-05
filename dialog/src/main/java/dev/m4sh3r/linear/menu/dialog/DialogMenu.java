@@ -31,6 +31,7 @@ import org.bukkit.entity.Player;
 public final class DialogMenu implements MenuRenderer {
 
     private static final int BUTTON_WIDTH = 150;
+    private static final int WIDE_BUTTON_WIDTH = 310;
     private static final int EXIT_WIDTH = 200;
     private static final int TEXT_WIDTH = 310;
 
@@ -83,14 +84,16 @@ public final class DialogMenu implements MenuRenderer {
         }
 
         List<ActionButton> buttons = new ArrayList<>();
+        int columns = page.columns() == 1 ? 1 : 2;
+        int width = columns == 1 ? WIDE_BUTTON_WIDTH : BUTTON_WIDTH;
         for (MenuButton b : page.buttons()) {
-            buttons.add(button(player, b, BUTTON_WIDTH, icons, atlas));
+            buttons.add(button(player, b, width, icons, atlas));
         }
         ActionButton exit = button(player, page.exit(), EXIT_WIDTH, icons, atlas);
 
         DialogType type = buttons.isEmpty()
                 ? DialogType.notice(exit)
-                : DialogType.multiAction(buttons).columns(2).exitAction(exit).build();
+                : DialogType.multiAction(buttons).columns(columns).exitAction(exit).build();
         Dialog dialog = Dialog.create(factory -> factory.empty()
                 .base(DialogBase.builder(plugin.text(page.title()))
                         .canCloseWithEscape(true)

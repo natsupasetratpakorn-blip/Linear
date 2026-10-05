@@ -27,7 +27,9 @@
     </dependencies>
 
     <build>
-        <finalName>Linear-${project.version}</finalName>
+        <!-- The module's own (empty) jar must not share a name with the bundled jar, or a rebuild
+             would shade the previous bundle back in and keep stale classes. -->
+        <finalName>linear-plugin-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -40,6 +42,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <outputFile>${project.build.directory}/Linear-${project.version}.jar</outputFile>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>

@@ -24,7 +24,41 @@ public final class ConfigAdvisor {
 
     /** impact: 3 = high, 2 = medium, 1 = low. */
     public record Tip(int impact, String file, String setting, String current, String suggested, String why) {
+
+        /** A readable name for menus; the exact setting stays in {@link #setting()}. */
+        public String title() {
+            String key = setting.startsWith("world-settings.default.") ? setting.substring("world-settings.default.".length()) : setting;
+            String title = TITLES.get(key);
+            if (title != null) {
+                return title;
+            }
+            if (key.startsWith("chunks.entity-per-chunk-save-limit.")) {
+                return "Saved " + key.substring(key.lastIndexOf('.') + 1).replace('_', ' ') + "s per chunk";
+            }
+            return key.substring(key.lastIndexOf('.') + 1).replace('-', ' ');
+        }
     }
+
+    private static final java.util.Map<String, String> TITLES = java.util.Map.ofEntries(
+            java.util.Map.entry("simulation-distance", "Simulation distance"),
+            java.util.Map.entry("view-distance", "View distance"),
+            java.util.Map.entry("misc.redstone-implementation", "Redstone implementation"),
+            java.util.Map.entry("environment.optimize-explosions", "Explosion optimization"),
+            java.util.Map.entry("misc.update-pathfinding-on-block-update", "Re-pathing on block changes"),
+            java.util.Map.entry("tick-rates.mob-spawner", "Spawner tick rate"),
+            java.util.Map.entry("hopper.disable-move-event", "Hopper move event"),
+            java.util.Map.entry("collisions.max-entity-collisions", "Entity collisions"),
+            java.util.Map.entry("hopper.ignore-occluding-blocks", "Hoppers behind blocks"),
+            java.util.Map.entry("tick-rates.grass-spread", "Grass spread rate"),
+            java.util.Map.entry("entities.armor-stands.tick", "Armor stand ticking"),
+            java.util.Map.entry("entities.armor-stands.do-collision-entity-lookups", "Armor stand collisions"),
+            java.util.Map.entry("entities.spawning.alt-item-despawn-rate.enabled", "Faster junk item despawn"),
+            java.util.Map.entry("chunks.prevent-moving-into-unloaded-chunks", "Moving into unloaded chunks"),
+            java.util.Map.entry("merge-radius.item", "Item merge radius"),
+            java.util.Map.entry("nerf-spawner-mobs", "Spawner mob AI"),
+            java.util.Map.entry("entity-activation-range.tick-inactive-villagers", "Inactive villager ticking"),
+            java.util.Map.entry("-Xmx", "Server memory"),
+            java.util.Map.entry("JVM flags", "Garbage collector flags"));
 
     private final Linear plugin;
 

@@ -13,7 +13,14 @@ import org.bukkit.inventory.ItemStack;
  * @param lines       themed body lines below the header
  * @param buttons     the page's buttons, laid out in two columns
  * @param exit        the bottom button (Close or Back)
+ * @param columns     1 for wide buttons with long labels, 2 otherwise (dialogs only)
  */
 public record MenuPage(String title, ItemStack headerItem, List<String> header, List<String> lines,
-                       List<MenuButton> buttons, MenuButton exit) {
+                       List<MenuButton> buttons, MenuButton exit, int columns) {
+
+    /** A page with the usual two columns of buttons. */
+    public MenuPage(String title, ItemStack headerItem, List<String> header, List<String> lines,
+                    List<MenuButton> buttons, MenuButton exit) {
+        this(title, headerItem, header, lines, buttons, exit, 2);
+    }
 }

@@ -22,7 +22,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 /**
  * The chest version of Linear's menu, used on servers or clients without native dialogs.
- * Six rows: a dark frame, the header item on top, buttons in two columns in the middle and
+ * Six rows: a dark frame, the header item on top, buttons in two columns in the empty middle and
  * Back/Close at the bottom centre.
  */
 public final class ChestMenu implements MenuRenderer, Listener {
@@ -64,11 +64,12 @@ public final class ChestMenu implements MenuRenderer, Listener {
         Inventory inv = plugin.getServer().createInventory(holder, SIZE, plugin.text(page.title()));
         holder.inventory = inv;
 
-        ItemStack frame = item(Material.GRAY_STAINED_GLASS_PANE, Component.space(), List.of());
-        ItemStack inner = item(Material.BLACK_STAINED_GLASS_PANE, Component.space(), List.of());
+        // A dark frame around an empty middle keeps the buttons readable.
+        ItemStack frame = item(Material.BLACK_STAINED_GLASS_PANE, Component.space(), List.of());
         for (int i = 0; i < SIZE; i++) {
-            boolean edge = i < 9 || i >= 45 || i % 9 == 0 || i % 9 == 8;
-            inv.setItem(i, edge ? frame : inner);
+            if (i < 9 || i >= 45 || i % 9 == 0 || i % 9 == 8) {
+                inv.setItem(i, frame);
+            }
         }
 
         if (page.headerItem() != null || !page.header().isEmpty()) {
