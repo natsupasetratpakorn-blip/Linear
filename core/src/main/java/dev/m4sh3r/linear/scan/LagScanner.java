@@ -37,7 +37,7 @@ public final class LagScanner {
     public record ChunkStats(String world, int cx, int cz, int entities, int items, int mobs, int hoppers,
                              int blockEntities, EntityType topType, int topCount, int x, int y, int z) {
         /** A rough cost estimate: entities tick every tick, items also search for merges, hoppers search for items. */
-        double score() {
+        public double score() {
             return entities + items * 0.5 + hoppers * 3 + blockEntities * 0.25;
         }
     }
@@ -54,25 +54,41 @@ public final class LagScanner {
         this.players = players;
     }
 
+    /** Scans and reports the result in chat. */
     public void scan(CommandSender sender) {
-        if (!running.compareAndSet(false, true)) {
+        int started = scan((stats, scanned) -> report(sender, stats, scanned));
+        if (started < 0) {
             sender.sendMessage(plugin.message("<warn>A scan is already running.</warn>"));
-            return;
+        } else if (started == 0) {
+            sender.sendMessage(plugin.message("<muted>No loaded chunks to scan.</muted>"));
+        } else {
+            sender.sendMessage(plugin.message("<muted>Scanning</muted> <value>" + started + "</value> <muted>chunks...</muted>"));
+        }
+    }
+
+    /**
+     * Starts a scan; {@code done} receives the heaviest chunks first and the number of chunks
+     * scanned, on whichever thread finished last. Returns the number of chunks being scanned,
+     * 0 if there is nothing to scan, or -1 if a scan is already running.
+     */
+    public int scan(java.util.function.BiConsumer<List<ChunkStats>, Integer> done) {
+        if (!running.compareAndSet(false, true)) {
+            return -1;
         }
         List<Target> targets = targets();
         if (targets.isEmpty()) {
             running.set(false);
-            sender.sendMessage(plugin.message("<muted>No loaded chunks to scan.</muted>"));
-            return;
+            return 0;
         }
-        sender.sendMessage(plugin.message("<muted>Scanning</muted> <value>" + targets.size() + "</value> <muted>chunks...</muted>"));
         ConcurrentLinkedQueue<ChunkStats> results = new ConcurrentLinkedQueue<>();
         AtomicInteger remaining = new AtomicInteger(targets.size());
         AtomicBoolean reported = new AtomicBoolean();
         Runnable finish = () -> {
             if (reported.compareAndSet(false, true)) {
                 running.set(false);
-                report(sender, new ArrayList<>(results), targets.size());
+                List<ChunkStats> sorted = new ArrayList<>(results);
+                sorted.sort(Comparator.comparingDouble(ChunkStats::score).reversed());
+                done.accept(sorted, targets.size());
             }
         };
         for (int i = 0; i < targets.size(); i++) {
@@ -94,6 +110,7 @@ public final class LagScanner {
         // Chunks that unload mid-scan may never run their task; report what we have.
         plugin.getServer().getGlobalRegionScheduler().runDelayed(plugin, task -> finish.run(),
                 TIMEOUT_TICKS + targets.size() / CHUNKS_PER_TICK);
+        return targets.size();
     }
 
     /**

@@ -25,6 +25,7 @@ public final class LinearConfig {
     public final LagMachines lag;
     public final ChunkLimits limits;
     public final ItemFloods items;
+    public final Menu menu;
     public final Adaptive adaptive;
     public final String prefix;
     public final boolean smallCaps;
@@ -35,6 +36,7 @@ public final class LinearConfig {
         this.lag = new LagMachines(c, warn);
         this.limits = new ChunkLimits(c, warn);
         this.items = new ItemFloods(c);
+        this.menu = new Menu(c, warn);
         this.adaptive = new Adaptive(c);
         this.prefix = c.getString("messages.prefix", "<gradient:#38bdf8:#818cf8><bold>Linear</bold></gradient> <dim>»</dim> ");
         this.smallCaps = c.getBoolean("messages.small-caps", true);
@@ -153,6 +155,21 @@ public final class LinearConfig {
             throttle = action.equals("THROTTLE");
             throttleSeconds = Math.max(1, c.getInt("lag-machines.throttle-seconds", 30));
             maxThrottleSeconds = Math.max(throttleSeconds, c.getInt("lag-machines.max-throttle-seconds", 600));
+        }
+    }
+
+    public static final class Menu {
+        public final boolean forceChest;
+        public final boolean icons;
+
+        Menu(FileConfiguration c, Consumer<String> warn) {
+            String style = c.getString("menu.style", "auto").toLowerCase(Locale.ROOT);
+            if (!style.equals("auto") && !style.equals("chest")) {
+                warn.accept("menu.style must be auto or chest, using auto");
+                style = "auto";
+            }
+            forceChest = style.equals("chest");
+            icons = c.getBoolean("menu.icons", true);
         }
     }
 

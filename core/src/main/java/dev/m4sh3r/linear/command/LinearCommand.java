@@ -20,7 +20,7 @@ import org.bukkit.entity.Player;
 
 public final class LinearCommand implements TabExecutor {
 
-    private static final List<String> SUBCOMMANDS = List.of("status", "scan", "chunks", "advise", "toggle", "restore", "reload");
+    private static final List<String> SUBCOMMANDS = List.of("menu", "status", "scan", "chunks", "advise", "toggle", "restore", "reload");
 
     private final Linear plugin;
 
@@ -30,8 +30,15 @@ public final class LinearCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        String sub = args.length == 0 ? "status" : args[0].toLowerCase(Locale.ROOT);
+        String sub = args.length == 0 ? (sender instanceof Player ? "menu" : "status") : args[0].toLowerCase(Locale.ROOT);
         switch (sub) {
+            case "menu", "gui" -> {
+                if (sender instanceof Player player) {
+                    plugin.menus().openMain(player);
+                } else {
+                    status(sender);
+                }
+            }
             case "status" -> status(sender);
             case "chunks" -> chunks(sender);
             case "scan" -> plugin.scanner().scan(sender);
@@ -134,30 +141,18 @@ public final class LinearCommand implements TabExecutor {
         }
         String module = args[1].toLowerCase(Locale.ROOT);
         boolean enable = args.length >= 3 ? args[2].equalsIgnoreCase("on") : !plugin.active(module);
-        plugin.setOverride(module, enable);
-        if (!enable) {
-            if (module.equals(Linear.VILLAGERS)) {
-                plugin.ai().restoreAll(AiController.Reason.VILLAGER);
-            } else if (module.equals(Linear.CROWD)) {
-                plugin.ai().restoreAll(AiController.Reason.CROWD);
-            } else if (module.equals(Linear.LAG)) {
-                plugin.lagDetector().clearFlags();
-            }
-        }
+        plugin.toggle(module, enable);
         sender.sendMessage(plugin.message("<value>" + module + "</value> " + (enable ? "<good>enabled</good>" : "<bad>disabled</bad>")
                 + " <muted>until the next reload.</muted>"));
     }
 
     private void restore(CommandSender sender) {
-        plugin.setOverride(Linear.VILLAGERS, false);
-        plugin.setOverride(Linear.CROWD, false);
-        int n = plugin.ai().restoreAll(null);
+        int n = plugin.restoreAi();
         sender.sendMessage(plugin.message("<good>Giving AI back to " + n + " mobs.</good> <muted>Villager and crowd optimizers are off until</muted> <accent>/linear reload</accent><muted>.</muted>"));
     }
 
     private void reload(CommandSender sender) {
-        plugin.loadSettings();
-        plugin.tracker().rescan();
+        plugin.reload();
         sender.sendMessage(plugin.message("<good>Configuration reloaded.</good>"));
     }
 

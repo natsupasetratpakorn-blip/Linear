@@ -5,19 +5,30 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>dev.m4sh3r</groupId>
-    <artifactId>Linear</artifactId>
+    <artifactId>linear-parent</artifactId>
     <version>1.0.0</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>Linear</name>
     <description>Performance and optimization plugin for Paper and Folia.</description>
+
+    <modules>
+        <!-- Everything that runs on every version: compiled against the 1.21 API. -->
+        <module>core</module>
+        <!-- Native dialog menus (1.21.6+): compiled against a newer API, only loaded when the server has it. -->
+        <module>dialog</module>
+        <!-- Bundles both into the plugin jar. -->
+        <module>plugin</module>
+    </modules>
 
     <properties>
         <!-- Java 21 bytecode runs on every supported server: 1.21.x needs Java 21, 26.x needs Java 25. -->
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Compile against the oldest supported API so nothing newer than 1.21 is used by accident. -->
+        <!-- The oldest supported API, so nothing newer than 1.21 is used by accident. -->
         <paper.api.version>1.21-R0.1-SNAPSHOT</paper.api.version>
+        <!-- First API with dialogs and sprite text that is still Java 21 bytecode. -->
+        <paper.dialog.api.version>1.21.11-R0.1-SNAPSHOT</paper.dialog.api.version>
     </properties>
 
     <repositories>
@@ -27,40 +38,31 @@
         </repository>
     </repositories>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>${paper.api.version}</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
-
     <build>
-        <finalName>${project.name}-${project.version}</finalName>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
-                <configuration>
-                    <release>${maven.compiler.release}</release>
-                    <compilerArgs>
-                        <arg>-Xlint:deprecation</arg>
-                    </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.4.2</version>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <release>${maven.compiler.release}</release>
+                        <compilerArgs>
+                            <arg>-Xlint:deprecation</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.4.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.6.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>

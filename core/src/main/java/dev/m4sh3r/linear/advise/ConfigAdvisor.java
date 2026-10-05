@@ -23,7 +23,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public final class ConfigAdvisor {
 
     /** impact: 3 = high, 2 = medium, 1 = low. */
-    record Tip(int impact, String file, String setting, String current, String suggested, String why) {
+    public record Tip(int impact, String file, String setting, String current, String suggested, String why) {
     }
 
     private final Linear plugin;
@@ -46,7 +46,8 @@ public final class ConfigAdvisor {
         });
     }
 
-    private List<Tip> collect() {
+    /** All suggestions, biggest impact first. Reads files: call it off the server threads. */
+    public List<Tip> collect() {
         List<Tip> tips = new ArrayList<>();
         File root = new File(".");
 
@@ -133,6 +134,7 @@ public final class ConfigAdvisor {
             tips.add(new Tip(2, "startup flags", "JVM flags", "default", "Aikar's flags",
                     "Tuned garbage collector settings give shorter, rarer pauses. See " + Text.verbatim("docs.papermc.io/paper/aikars-flags")));
         }
+        tips.sort(Comparator.comparingInt(Tip::impact).reversed());
         return tips;
     }
 

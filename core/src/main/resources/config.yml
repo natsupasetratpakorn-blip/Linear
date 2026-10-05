@@ -135,6 +135,14 @@ adaptive:
     # Lag machine limits are multiplied by this while stressed.
     lag-limit-multiplier: 0.5
 
+# /linear menu (also /linear with no arguments, for players).
+menu:
+  # auto: the native dialog screen on 1.21.6+ for players whose client supports it,
+  #       the chest menu for everyone else. chest: always the chest menu.
+  style: auto
+  # Item icons inside dialog buttons (needs 1.21.9+ clients).
+  icons: true
+
 messages:
   # Write every in-game message in a small-caps font (ʟɪɴᴇᴀʀ).
   small-caps: true

@@ -12,7 +12,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
  *
  * <p>Messages are written in MiniMessage with semantic theme tags instead of raw colours:
  * {@code <accent>}, {@code <value>}, {@code <muted>}, {@code <dim>}, {@code <good>},
- * {@code <bad>}, {@code <warn>} and {@code <link>}.
+ * {@code <bad>}, {@code <warn>}, {@code <link>}, {@code <violet>}, {@code <teal>} and {@code <rose>}.
  */
 public final class Text {
 
@@ -25,6 +25,9 @@ public final class Text {
     public static final TextColor BAD = TextColor.fromHexString("#f87171");
     public static final TextColor WARN = TextColor.fromHexString("#fbbf24");
     public static final TextColor LINK = TextColor.fromHexString("#a5b4fc");
+    public static final TextColor VIOLET = TextColor.fromHexString("#c4b5fd");
+    public static final TextColor TEAL = TextColor.fromHexString("#5eead4");
+    public static final TextColor ROSE = TextColor.fromHexString("#fda4af");
 
     private static final TagResolver THEME = TagResolver.resolver(
             Placeholder.styling("accent", ACCENT),
@@ -34,7 +37,10 @@ public final class Text {
             Placeholder.styling("good", GOOD),
             Placeholder.styling("bad", BAD),
             Placeholder.styling("warn", WARN),
-            Placeholder.styling("link", LINK, TextDecoration.UNDERLINED));
+            Placeholder.styling("link", LINK, TextDecoration.UNDERLINED),
+            Placeholder.styling("violet", VIOLET),
+            Placeholder.styling("teal", TEAL),
+            Placeholder.styling("rose", ROSE));
 
     private static final MiniMessage MINI = MiniMessage.builder()
             .tags(TagResolver.resolver(TagResolver.standard(), THEME))

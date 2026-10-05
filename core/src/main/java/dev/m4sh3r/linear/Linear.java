@@ -11,6 +11,7 @@ import dev.m4sh3r.linear.lag.LagMachineDetector;
 import dev.m4sh3r.linear.advise.ConfigAdvisor;
 import dev.m4sh3r.linear.limit.ChunkLimiter;
 import dev.m4sh3r.linear.limit.ItemFloodGuard;
+import dev.m4sh3r.linear.menu.MenuService;
 import dev.m4sh3r.linear.scan.LagScanner;
 import dev.m4sh3r.linear.monitor.TickMonitor;
 import dev.m4sh3r.linear.util.Text;
@@ -46,6 +47,7 @@ public final class Linear extends JavaPlugin {
     private ItemFloodGuard itemGuard;
     private LagScanner scanner;
     private ConfigAdvisor advisor;
+    private MenuService menus;
 
     @Override
     public void onEnable() {
@@ -63,6 +65,7 @@ public final class Linear extends JavaPlugin {
         itemGuard = new ItemFloodGuard(this);
         scanner = new LagScanner(this, players);
         advisor = new ConfigAdvisor(this);
+        menus = new MenuService(this);
 
         tickMonitor.start();
         players.start();
@@ -97,6 +100,33 @@ public final class Linear extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         config = new LinearConfig(getConfig(), msg -> getLogger().warning(msg));
         overrides.clear();
+    }
+
+    /** Reloads config.yml and re-checks every loaded mob against it. */
+    public void reload() {
+        loadSettings();
+        tracker.rescan();
+    }
+
+    /** Switches a module on or off until the next reload; switching off undoes what it did. */
+    public void toggle(String module, boolean enable) {
+        setOverride(module, enable);
+        if (!enable) {
+            switch (module) {
+                case VILLAGERS -> ai.restoreAll(AiController.Reason.VILLAGER);
+                case CROWD -> ai.restoreAll(AiController.Reason.CROWD);
+                case LAG -> lag.clearFlags();
+                default -> {
+                }
+            }
+        }
+    }
+
+    /** Gives every mob its AI back and pauses the AI optimizers until the next reload. */
+    public int restoreAi() {
+        setOverride(VILLAGERS, false);
+        setOverride(CROWD, false);
+        return ai.restoreAll(null);
     }
 
     public LinearConfig settings() {
@@ -166,6 +196,10 @@ public final class Linear extends JavaPlugin {
 
     public LagScanner scanner() {
         return scanner;
+    }
+
+    public MenuService menus() {
+        return menus;
     }
 
     public ConfigAdvisor advisor() {

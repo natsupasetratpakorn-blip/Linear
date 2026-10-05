@@ -77,6 +77,18 @@ Breeding, chicken eggs and spawners stop once a chunk already holds a set number
 (80 for breeding, 40 for spawners, per-type overrides supported). Farms can't grow until they drag the
 server down.
 
+### Menu
+`/linear` (or `/linear menu`) opens Linear's control panel:
+
+- a header with your head, the server version and a health status,
+- live numbers: TPS, ms/tick, brains and mobs switched off, items packed, actions stopped,
+- buttons for the lag finder, lag machines, config advisor, module switches, reload and restore AI.
+
+On **1.21.6 and newer** it is a native Minecraft dialog screen with two columns of buttons, each with
+an item icon (1.21.9+ clients). On older servers, and for players on older clients joining through
+ViaVersion, the same menu opens as a chest. Nothing to configure: Linear picks per player. Set
+`menu.style: chest` to always use the chest.
+
 ### Adaptive mode
 When the average tick time stays above 45 ms, Linear gets stricter until the server recovers. It
 shrinks the villager radius, lowers the crowd threshold and halves the lag machine limits.
@@ -119,6 +131,7 @@ Notes:
 
 | Command | Description |
 | --- | --- |
+| `/linear` or `/linear menu` | Open the menu (players). From the console, `/linear` shows the status. |
 | `/linear status` | TPS, ms/tick and what every module is doing. |
 | `/linear scan` | The heaviest chunks (entities, items, hoppers), with click-to-teleport. |
 | `/linear advise` | Read-only suggestions for your server configuration. |
@@ -171,5 +184,12 @@ underlined link colour for click-to-teleport. Set `messages.small-caps: false` t
 mvn package
 ```
 
-The jar is written to `target/Linear-<version>.jar`. It is compiled against the 1.21 API with Java 21
-bytecode, so the same jar runs on every supported version.
+The jar is written to `plugin/target/Linear-<version>.jar`. The project has three Maven modules:
+
+| Module | Compiled against | Contents |
+| --- | --- | --- |
+| `core` | Paper API 1.21 | Everything that runs on every version, including the chest menu. |
+| `dialog` | Paper API 1.21.11 | The native dialog menu. Only loaded when the server has dialogs. |
+| `plugin` | – | Bundles both into the plugin jar. |
+
+Everything is Java 21 bytecode, so the same jar runs on every supported version.
