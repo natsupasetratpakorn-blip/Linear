@@ -34,6 +34,8 @@ public final class EntityTracker implements Listener {
     private final AiController ai;
     private final List<MobHandler> handlers;
     private final Map<UUID, Mob> tracked = new ConcurrentHashMap<>();
+    /** Every loaded mob, so a reload can re-check all of them on their own threads (also on Folia). */
+    private final Map<UUID, Mob> loaded = new ConcurrentHashMap<>();
     private volatile boolean loggedError;
 
     public EntityTracker(Linear plugin, AiController ai, MobHandler... handlers) {
@@ -44,22 +46,32 @@ public final class EntityTracker implements Listener {
 
     public void start() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        rescan();
+        bootstrap();
     }
 
     /**
-     * Picks up mobs that were loaded before Linear was enabled or became relevant after a
-     * reload. On Paper every loaded entity is visited; on Folia, where no thread may walk a
-     * whole world, the area around each player is visited and everything else is picked up
-     * when its chunk loads.
+     * Re-checks every loaded mob after a reload, each on its own scheduler, so mob types
+     * that were just added to the config are picked up everywhere.
      */
     public void rescan() {
+        for (Mob mob : loaded.values()) {
+            mob.getScheduler().run(plugin, task -> track(mob), null);
+        }
+    }
+
+    /**
+     * Picks up mobs that were loaded before Linear was enabled. On Paper every loaded entity
+     * is visited; on Folia, where no thread may walk a whole world, the area around each
+     * player is visited and everything else is picked up when its chunk loads.
+     */
+    private void bootstrap() {
         if (Linear.folia()) {
             for (Player player : plugin.getServer().getOnlinePlayers()) {
                 player.getScheduler().run(plugin, task -> {
                     try {
                         for (Entity e : player.getNearbyEntities(64, 64, 64)) {
                             if (e instanceof Mob mob) {
+                                loaded.put(mob.getUniqueId(), mob);
                                 track(mob);
                             }
                         }
@@ -71,6 +83,7 @@ public final class EntityTracker implements Listener {
         } else {
             for (World world : plugin.getServer().getWorlds()) {
                 for (Mob mob : world.getEntitiesByClass(Mob.class)) {
+                    loaded.put(mob.getUniqueId(), mob);
                     track(mob);
                 }
             }
@@ -84,6 +97,7 @@ public final class EntityTracker implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onAdd(EntityAddToWorldEvent event) {
         if (event.getEntity() instanceof Mob mob) {
+            loaded.put(mob.getUniqueId(), mob);
             track(mob);
         }
     }
@@ -92,6 +106,7 @@ public final class EntityTracker implements Listener {
     public void onRemove(EntityRemoveFromWorldEvent event) {
         if (event.getEntity() instanceof Mob mob) {
             tracked.remove(mob.getUniqueId(), mob);
+            loaded.remove(mob.getUniqueId(), mob);
             ai.forget(mob.getUniqueId());
         }
     }

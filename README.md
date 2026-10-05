@@ -37,6 +37,31 @@ pathfinding goals every tick. Linear switches the AI of packed animals off. Phys
 aging, chicken eggs and drops are untouched. **Feeding an animal wakes it up**, so breeding by hand
 works. Sheep, bees and turtles are deliberately left out because their farm output depends on their AI.
 
+**Kill chambers (opt-in):** set `crowded-mobs.hostile.enabled: true` and zombies, skeletons, spiders,
+creepers and witches piled up in a mob farm's kill chamber lose their AI too. Mobs with their AI off
+don't attack, so a player AFK at the kill spot is safe. It's off by default because some farms need
+mobs to walk on their own.
+
+### Item flood protection
+Broken farms and item streams can pile thousands of dropped items into one chunk, and every one of
+them is an entity that ticks. When a chunk holds more than 256 loose items, Linear packs identical items
+in that chunk into full stacks. **Nothing is ever deleted:** the total of every item stays exactly the
+same, there are just far fewer entities. Items that can't be picked up (shop and display items) are
+never touched.
+
+### Lag finder
+`/linear scan` ranks the heaviest chunks on the server by entities, dropped items, hoppers and block
+entities, says what most of the entities are (for example "mostly chicken"), and gives a
+click-to-teleport link for each. Chunks are counted a few dozen per tick on their own thread, so a scan
+never freezes the server. On Folia the chunks within simulation distance of each player are scanned.
+
+### Config advisor
+`/linear advise` reads `server.properties`, `config/paper-world-defaults.yml`, `spigot.yml` and your
+startup flags, and lists settings known to cost performance, with the biggest impact first: for
+example the redstone implementation, explosion optimization, simulation distance, spawner tick rate,
+hopper events, item merge radius and garbage-collector flags. Hover a suggestion to see why.
+**It only reads:** Linear never changes these files.
+
 ### Lag machine detection
 Linear counts redstone updates, piston moves and falling block / TNT activity per chunk, every second.
 A chunk that stays over a limit for 3 seconds in a row is flagged:
@@ -91,12 +116,14 @@ Notes:
 | Command | Description |
 | --- | --- |
 | `/linear status` | TPS, ms/tick and what every module is doing. |
+| `/linear scan` | The heaviest chunks (entities, items, hoppers), with click-to-teleport. |
+| `/linear advise` | Read-only suggestions for your server configuration. |
 | `/linear chunks` | Throttled chunks and the busiest redstone chunks, with click-to-teleport. |
 | `/linear toggle <module> [on\|off]` | Switch a module at runtime (until the next reload). Handy for an A/B test on your own server. |
 | `/linear restore` | Give every mob its AI back and pause the AI optimizers. |
 | `/linear reload` | Reload `config.yml`. |
 
-Modules: `villagers`, `crowded-mobs`, `lag-machines`, `chunk-limits`, `adaptive`.
+Modules: `villagers`, `crowded-mobs`, `lag-machines`, `item-floods`, `chunk-limits`, `adaptive`.
 
 | Permission | Default | Description |
 | --- | --- | --- |
