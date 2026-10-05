@@ -96,6 +96,8 @@ disabled, as if a player were standing at the farm.
 | 800 cows packed in 16 pens, player nearby | 9.4 → 7.7 ms (**-19%**) | 8.9 → 7.7 ms (**-14%**) |
 | 800 chickens packed in 16 pens, player nearby | 9.3 → 7.3 ms (**-22%**) | 8.7 → 7.2 ms (**-17%**) |
 | Lag machine: 4 chunks of observer-clocked redstone dust + 48 piston clocks | 31.0 → 2.8 ms (**-91%**) | 30.8 → 2.9 ms (**-91%**) |
+| Item flood: 4,096 dropped items in 4 chunks | 5.6 → 0.7 ms (**-87%**) | 5.8 → 0.8 ms (**-86%**) |
+| Kill chamber (opt-in): 300 zombies in 10 pits, player nearby | 5.3 → 3.8 ms (**-28%**) | 4.9 → 3.9 ms (**-21%**) |
 | Normal redstone + 180 uncrowded cows (nothing to optimize) | 5.6 → 5.7 ms (no measurable cost) | 5.5 → 5.7 ms (no measurable cost) |
 
 Notes:
@@ -104,6 +106,8 @@ Notes:
   which Linear deliberately leaves alone (water streams, pushing and drops must keep working).
 - The overhead difference (0.1–0.2 ms) is within run-to-run noise. The plain averages of all rounds
   were 5.68 vs 5.69 ms and 5.68 vs 5.68 ms.
+- The item flood packing kept every item: in the test, 1,024 item entities in a chunk became 34 entities
+  with exactly the same total of each item type.
 - Functional tests (trading hall, job sites, restocking, breeding, golem-farm villagers, crowded animals,
   lag machine throttling, no errors in the log) passed on Paper 1.21, 1.21.11, 26.1.2 and 26.3 and on
   Folia 1.21.11 and 26.2. A real Minecraft client (bot) also checked trading, level-ups, feeding and
