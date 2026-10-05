@@ -46,18 +46,43 @@ public final class Text {
     private Text() {
     }
 
+    /** Text between these markers is never converted to small caps (setting names, file names, URLs). */
+    public static final String VERBATIM_OPEN = "<verbatim>";
+    public static final String VERBATIM_CLOSE = "</verbatim>";
+
     public static Component parse(String miniMessage, boolean smallCaps) {
-        return MINI.deserialize(smallCaps ? smallCaps(miniMessage) : miniMessage);
+        return MINI.deserialize(convert(miniMessage, smallCaps));
+    }
+
+    /** Wraps text so it keeps the normal font. */
+    public static String verbatim(String text) {
+        return VERBATIM_OPEN + text + VERBATIM_CLOSE;
+    }
+
+    public static String smallCaps(String miniMessage) {
+        return convert(miniMessage, true);
     }
 
     /**
      * Converts the visible letters of a MiniMessage string to small caps. Anything inside a
-     * tag ({@code <...>}) is left alone, so colours, click commands and hover text keep working.
+     * tag ({@code <...>}) or between verbatim markers is left alone, so colours, click
+     * commands, hover text and exact names keep working. The verbatim markers are removed.
      */
-    public static String smallCaps(String miniMessage) {
+    private static String convert(String miniMessage, boolean smallCaps) {
         StringBuilder out = new StringBuilder(miniMessage.length());
         boolean inTag = false;
+        boolean verbatim = false;
         for (int i = 0; i < miniMessage.length(); i++) {
+            if (miniMessage.startsWith(VERBATIM_OPEN, i)) {
+                verbatim = true;
+                i += VERBATIM_OPEN.length() - 1;
+                continue;
+            }
+            if (miniMessage.startsWith(VERBATIM_CLOSE, i)) {
+                verbatim = false;
+                i += VERBATIM_CLOSE.length() - 1;
+                continue;
+            }
             char c = miniMessage.charAt(i);
             if (c == '\\' && i + 1 < miniMessage.length()) {
                 out.append(c).append(miniMessage.charAt(++i)); // escaped character
@@ -67,7 +92,7 @@ public final class Text {
                 inTag = true;
             } else if (c == '>') {
                 inTag = false;
-            } else if (!inTag) {
+            } else if (smallCaps && !inTag && !verbatim) {
                 char lower = Character.toLowerCase(c);
                 if (lower >= 'a' && lower <= 'z') {
                     c = SMALL_CAPS.charAt(lower - 'a');

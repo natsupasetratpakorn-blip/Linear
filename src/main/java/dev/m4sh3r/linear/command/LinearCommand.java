@@ -20,7 +20,7 @@ import org.bukkit.entity.Player;
 
 public final class LinearCommand implements TabExecutor {
 
-    private static final List<String> SUBCOMMANDS = List.of("status", "chunks", "toggle", "restore", "reload");
+    private static final List<String> SUBCOMMANDS = List.of("status", "scan", "chunks", "advise", "toggle", "restore", "reload");
 
     private final Linear plugin;
 
@@ -34,6 +34,8 @@ public final class LinearCommand implements TabExecutor {
         switch (sub) {
             case "status" -> status(sender);
             case "chunks" -> chunks(sender);
+            case "scan" -> plugin.scanner().scan(sender);
+            case "advise" -> plugin.advisor().advise(sender);
             case "toggle" -> toggle(sender, args);
             case "restore" -> restore(sender);
             case "reload" -> reload(sender);
@@ -61,6 +63,8 @@ public final class LinearCommand implements TabExecutor {
                 + "</value> <muted>mobs with AI switched off</muted>");
         line(sender, "Lag machines", onOff(Linear.LAG) + " <value>" + lag.flags().size() + "</value> <muted>chunks throttled</muted> <dim>·</dim> <value>"
                 + lag.blockedActions() + "</value> <muted>actions stopped</muted>");
+        line(sender, "Item floods", onOff(Linear.ITEMS) + " <value>" + plugin.itemGuard().removedEntities()
+                + "</value> <muted>item entities packed into stacks</muted>");
         line(sender, "Chunk limits", onOff(Linear.LIMITS) + " <value>" + plugin.limiter().blockedSpawns() + "</value> <muted>spawns prevented</muted>");
         line(sender, "Adaptive", onOff(Linear.ADAPTIVE) + (plugin.stressed() ? " <warn>active</warn>" : " <muted>idle</muted>"));
         line(sender, "Tracked mobs", "<value>" + plugin.tracker().trackedCount() + "</value>");

@@ -24,6 +24,7 @@ public final class LinearConfig {
     public final Crowd crowd;
     public final LagMachines lag;
     public final ChunkLimits limits;
+    public final ItemFloods items;
     public final Adaptive adaptive;
     public final String prefix;
     public final boolean smallCaps;
@@ -33,6 +34,7 @@ public final class LinearConfig {
         this.crowd = new Crowd(c, warn);
         this.lag = new LagMachines(c, warn);
         this.limits = new ChunkLimits(c, warn);
+        this.items = new ItemFloods(c);
         this.adaptive = new Adaptive(c);
         this.prefix = c.getString("messages.prefix", "<gradient:#38bdf8:#818cf8><bold>Linear</bold></gradient> <dim>»</dim> ");
         this.smallCaps = c.getBoolean("messages.small-caps", true);
@@ -97,6 +99,7 @@ public final class LinearConfig {
         public final Set<EntityType> types;
         public final boolean keepNamed;
         public final int wakeTicks;
+        public final boolean hostile;
 
         Crowd(FileConfiguration c, Consumer<String> warn) {
             enabled = c.getBoolean("crowded-mobs.enabled", true);
@@ -104,7 +107,12 @@ public final class LinearConfig {
             radius = Math.max(0.5, Math.min(16, c.getDouble("crowded-mobs.radius", 3.0)));
             threshold = Math.max(2, c.getInt("crowded-mobs.threshold", 10));
             EnumSet<EntityType> t = EnumSet.noneOf(EntityType.class);
-            for (String s : c.getStringList("crowded-mobs.types")) {
+            List<String> names = new java.util.ArrayList<>(c.getStringList("crowded-mobs.types"));
+            hostile = c.getBoolean("crowded-mobs.hostile.enabled", false);
+            if (hostile) {
+                names.addAll(c.getStringList("crowded-mobs.hostile.types"));
+            }
+            for (String s : names) {
                 EntityType type = entityType(s);
                 if (type == null || type.getEntityClass() == null
                         || !org.bukkit.entity.Mob.class.isAssignableFrom(type.getEntityClass())) {
@@ -145,6 +153,16 @@ public final class LinearConfig {
             throttle = action.equals("THROTTLE");
             throttleSeconds = Math.max(1, c.getInt("lag-machines.throttle-seconds", 30));
             maxThrottleSeconds = Math.max(throttleSeconds, c.getInt("lag-machines.max-throttle-seconds", 600));
+        }
+    }
+
+    public static final class ItemFloods {
+        public final boolean enabled;
+        public final int maxPerChunk;
+
+        ItemFloods(FileConfiguration c) {
+            enabled = c.getBoolean("item-floods.enabled", true);
+            maxPerChunk = Math.max(16, c.getInt("item-floods.max-items-per-chunk", 256));
         }
     }
 

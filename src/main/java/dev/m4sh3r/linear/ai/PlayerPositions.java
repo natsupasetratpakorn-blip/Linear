@@ -1,6 +1,7 @@
 package dev.m4sh3r.linear.ai;
 
 import dev.m4sh3r.linear.Linear;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,11 +21,12 @@ import org.bukkit.event.player.PlayerQuitEvent;
  */
 public final class PlayerPositions implements Listener {
 
-    private record Pos(UUID world, double x, double y, double z) {
+    /** Where a player was at the last refresh. */
+    public record Snapshot(UUID world, double x, double y, double z) {
     }
 
     private final Linear plugin;
-    private final Map<UUID, Pos> positions = new ConcurrentHashMap<>();
+    private final Map<UUID, Snapshot> positions = new ConcurrentHashMap<>();
 
     public PlayerPositions(Linear plugin) {
         this.plugin = plugin;
@@ -60,15 +62,19 @@ public final class PlayerPositions implements Listener {
                 return;
             }
             Location l = player.getLocation();
-            positions.put(id, new Pos(l.getWorld().getUID(), l.getX(), l.getY(), l.getZ()));
+            positions.put(id, new Snapshot(l.getWorld().getUID(), l.getX(), l.getY(), l.getZ()));
         }, () -> positions.remove(id), 1L, 20L);
+    }
+
+    public List<Snapshot> snapshot() {
+        return List.copyOf(positions.values());
     }
 
     /** Whether any non-spectator player is within {@code radius} blocks of the location. */
     public boolean anyNear(Location loc, double radius) {
         UUID world = loc.getWorld().getUID();
         double r2 = radius * radius;
-        for (Pos p : positions.values()) {
+        for (Snapshot p : positions.values()) {
             if (p.world.equals(world)) {
                 double dx = p.x - loc.getX();
                 double dy = p.y - loc.getY();

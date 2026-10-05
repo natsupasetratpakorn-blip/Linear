@@ -9,7 +9,7 @@ folia-supported: true
 commands:
   linear:
     description: Linear performance tools.
-    usage: /linear <status|chunks|toggle|restore|reload>
+    usage: /linear <status|scan|chunks|advise|toggle|restore|reload>
     aliases: [lin]
     permission: linear.admin
 

@@ -75,6 +75,12 @@ crowded-mobs:
   # Leave mobs with a name tag alone.
   keep-named: true
   wake-on-interact-ticks: 600
+  # Mob farm kill chambers: hostile mobs piled up waiting to be killed. Off by default,
+  # because some farms need mobs to walk on their own (for example into a water stream).
+  # Mobs with their AI off don't attack, so AFK players at the kill spot are safe too.
+  hostile:
+    enabled: false
+    types: [ZOMBIE, HUSK, SKELETON, STRAY, SPIDER, CAVE_SPIDER, CREEPER, WITCH]
 
 # Lag machine detection. Linear counts redstone updates, piston moves and
 # falling block / TNT spawns per chunk every second. A chunk that stays over a
@@ -95,6 +101,14 @@ lag-machines:
   action: THROTTLE
   throttle-seconds: 30
   max-throttle-seconds: 600
+
+# Dropped item floods (broken farms, item streams piling up). When a chunk holds more loose
+# items than this, identical items in that chunk are packed into full stacks. Nothing is ever
+# deleted: the total amount of every item stays exactly the same, there are just far fewer
+# item entities. Display/shop items that can't be picked up are never touched.
+item-floods:
+  enabled: true
+  max-items-per-chunk: 256
 
 # Per-chunk caps that stop farms from growing without bound.
 chunk-limits:

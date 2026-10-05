@@ -8,7 +8,10 @@ import dev.m4sh3r.linear.ai.VillagerOptimizer;
 import dev.m4sh3r.linear.command.LinearCommand;
 import dev.m4sh3r.linear.config.LinearConfig;
 import dev.m4sh3r.linear.lag.LagMachineDetector;
+import dev.m4sh3r.linear.advise.ConfigAdvisor;
 import dev.m4sh3r.linear.limit.ChunkLimiter;
+import dev.m4sh3r.linear.limit.ItemFloodGuard;
+import dev.m4sh3r.linear.scan.LagScanner;
 import dev.m4sh3r.linear.monitor.TickMonitor;
 import dev.m4sh3r.linear.util.Text;
 import java.util.Map;
@@ -23,8 +26,9 @@ public final class Linear extends JavaPlugin {
     public static final String CROWD = "crowded-mobs";
     public static final String LAG = "lag-machines";
     public static final String LIMITS = "chunk-limits";
+    public static final String ITEMS = "item-floods";
     public static final String ADAPTIVE = "adaptive";
-    public static final String[] MODULES = {VILLAGERS, CROWD, LAG, LIMITS, ADAPTIVE};
+    public static final String[] MODULES = {VILLAGERS, CROWD, LAG, ITEMS, LIMITS, ADAPTIVE};
 
     private static final boolean FOLIA = classExists("io.papermc.paper.threadedregions.RegionizedServer");
 
@@ -39,6 +43,9 @@ public final class Linear extends JavaPlugin {
     private EntityTracker tracker;
     private LagMachineDetector lag;
     private ChunkLimiter limiter;
+    private ItemFloodGuard itemGuard;
+    private LagScanner scanner;
+    private ConfigAdvisor advisor;
 
     @Override
     public void onEnable() {
@@ -53,6 +60,9 @@ public final class Linear extends JavaPlugin {
         tracker = new EntityTracker(this, ai, villagers, crowd);
         lag = new LagMachineDetector(this);
         limiter = new ChunkLimiter(this);
+        itemGuard = new ItemFloodGuard(this);
+        scanner = new LagScanner(this, players);
+        advisor = new ConfigAdvisor(this);
 
         tickMonitor.start();
         players.start();
@@ -60,6 +70,7 @@ public final class Linear extends JavaPlugin {
         lag.start();
         getServer().getPluginManager().registerEvents(limiter, this);
         getServer().getPluginManager().registerEvents(villagers, this);
+        getServer().getPluginManager().registerEvents(itemGuard, this);
 
         PluginCommand command = getCommand("linear");
         if (command != null) {
@@ -104,6 +115,7 @@ public final class Linear extends JavaPlugin {
             case CROWD -> c.crowd.enabled;
             case LAG -> c.lag.enabled;
             case LIMITS -> c.limits.enabled;
+            case ITEMS -> c.items.enabled;
             case ADAPTIVE -> c.adaptive.enabled;
             default -> false;
         };
@@ -146,6 +158,18 @@ public final class Linear extends JavaPlugin {
 
     public ChunkLimiter limiter() {
         return limiter;
+    }
+
+    public ItemFloodGuard itemGuard() {
+        return itemGuard;
+    }
+
+    public LagScanner scanner() {
+        return scanner;
+    }
+
+    public ConfigAdvisor advisor() {
+        return advisor;
     }
 
     public EntityTracker tracker() {
